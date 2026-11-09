@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.zip
+*.tar.gz
+.site-stage-*/
+.wrangler/
+.env*
+!.env.example
+.google-sheets.local

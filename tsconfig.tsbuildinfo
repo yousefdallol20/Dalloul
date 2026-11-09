@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/composables/useregistry.ts","./src/constants/options.ts","./src/types/models.ts","./src/app.vue","./src/components/appmodals.vue","./src/views/adminview.vue","./src/views/familyview.vue","./src/views/loginview.vue","./src/views/registerview.vue","./vite.config.ts"],"version":"5.9.3"}
