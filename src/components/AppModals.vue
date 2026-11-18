@@ -1,20 +1,49 @@
 <script setup lang="ts">
 import {
-  Check, Edit3, FileSpreadsheet, Filter,
-  MessageCircle, ShieldCheck, TentTree,
-  UserRound, X
-} from 'lucide-vue-next';
-import { useRegistry } from '../composables/useRegistry';
-import { patientNeedOptions } from '../constants/options';
+  Check,
+  Edit3,
+  FileSpreadsheet,
+  Filter,
+  MessageCircle,
+  ShieldCheck,
+  TentTree,
+  UserRound,
+  X,
+} from "lucide-vue-next";
+import { useRegistry } from "../composables/useRegistry";
+import {
+  patientNeedOptions,
+  originalAreas,
+  housingStatusOptions,
+  displacementStatusOptions,
+} from "../constants/options";
 
 // النوافذ المنبثقة المشتركة للفلاتر والرسائل والتفاصيل والصور.
 const {
-  Info, familyFilterOpen, peopleFilterOpen, bulkMessageOpen,
-  bulkMessage, selectedFamily, selectedMember, selectedPhoto,
-  search, peopleSearch, needOptions, conditions, womenConditions,
-  regions, educationOptions, familyFilters, peopleFilters,
-  filteredFamilies, flash, clearFamilyFilters, clearPeopleFilters,
-  photoSrc, age, familyOfMember
+  Info,
+  familyFilterOpen,
+  peopleFilterOpen,
+  bulkMessageOpen,
+  bulkMessage,
+  selectedFamily,
+  selectedMember,
+  selectedPhoto,
+  search,
+  peopleSearch,
+  needOptions,
+  conditions,
+  womenConditions,
+  regions,
+  educationOptions,
+  familyFilters,
+  peopleFilters,
+  filteredFamilies,
+  flash,
+  clearFamilyFilters,
+  clearPeopleFilters,
+  photoSrc,
+  age,
+  familyOfMember,
 } = useRegistry();
 </script>
 
@@ -33,17 +62,14 @@ const {
         </div>
 
         <button @click="familyFilterOpen = false">
-          <X/>
+          <X />
         </button>
       </div>
 
       <div class="fields-grid two">
         <label>
           اسم رب الأسرة
-          <input
-            v-model="familyFilters.head"
-            placeholder="الاسم"
-          />
+          <input v-model="familyFilters.head" placeholder="الاسم" />
         </label>
 
         <label>
@@ -126,18 +152,12 @@ const {
 
         <label>
           المنطقة الأصلية
-          <input
-            v-model="familyFilters.originalArea"
-            placeholder="المنطقة أو الحي"
-          />
-        </label>
-
-        <label>
-          العنوان الأصلي بالتفصيل
-          <input
-            v-model="familyFilters.originalAddress"
-            placeholder="اكتب العنوان"
-          />
+          <select v-model="familyFilters.originalArea">
+            <option value="">-- اختر --</option>
+            <option v-for="area in originalAreas" :key="area" :value="area">
+              {{ area }}
+            </option>
+          </select>
         </label>
 
         <label>
@@ -145,11 +165,27 @@ const {
 
           <select v-model="familyFilters.originalHousingStatus">
             <option value="">-- اختر --</option>
-            <option>سليم</option>
-            <option>متضرر جزئياً</option>
-            <option>متضرر كلياً</option>
-            <option>مدمّر</option>
-            <option>غير معروف</option>
+            <option
+              v-for="status in housingStatusOptions"
+              :key="status"
+              :value="status"
+            >
+              {{ status }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          حالة النزوح
+          <select v-model="familyFilters.displacementStatus">
+            <option value="">-- اختر --</option>
+            <option
+              v-for="status in displacementStatusOptions"
+              :key="status"
+              :value="status"
+            >
+              {{ status }}
+            </option>
           </select>
         </label>
 
@@ -159,10 +195,7 @@ const {
           <select v-model="familyFilters.displacementArea">
             <option value="">-- اختر --</option>
 
-            <option
-              v-for="region in regions"
-              :key="region"
-            >
+            <option v-for="region in regions" :key="region">
               {{ region }}
             </option>
           </select>
@@ -178,16 +211,7 @@ const {
             <option>منزل أقارب</option>
             <option>مركز إيواء</option>
             <option>خيمة</option>
-            <option>مكان مفتوح</option>
           </select>
-        </label>
-
-        <label>
-          مكان النزوح بالتفصيل
-          <input
-            v-model="familyFilters.residence"
-            placeholder="المدينة أو الحي"
-          />
         </label>
 
         <label>
@@ -206,46 +230,36 @@ const {
           <select v-model="familyFilters.need">
             <option value="">-- اختر --</option>
 
-            <option
-              v-for="need in needOptions"
-              :key="need"
-            >
+            <option v-for="need in needOptions" :key="need">
               {{ need }}
             </option>
           </select>
         </label>
 
         <label>
+          حالة العائلة
+          <select v-model="familyFilters.familyStatus">
+            <option value="">-- اختر --</option>
+            <option value="شهداء">شهداء</option>
+            <option value="على قيد الحياة">على قيد الحياة</option>
+          </select>
+        </label>
+
+        <label>
           عدد أفراد العائلة من
-          <input
-            v-model="familyFilters.minMembers"
-            type="number"
-            min="0"
-          />
+          <input v-model="familyFilters.minMembers" type="number" min="0" />
         </label>
 
         <label>
           عدد أفراد العائلة إلى
-          <input
-            v-model="familyFilters.maxMembers"
-            type="number"
-            min="0"
-          />
+          <input v-model="familyFilters.maxMembers" type="number" min="0" />
         </label>
       </div>
 
       <div class="modal-actions">
-        <button
-          class="ghost"
-          @click="familyFilterOpen = false"
-        >
-          إلغاء
-        </button>
+        <button class="ghost" @click="familyFilterOpen = false">إلغاء</button>
 
-        <button
-          class="outline"
-          @click="clearFamilyFilters"
-        >
+        <button class="outline" @click="clearFamilyFilters">
           مسح خيارات العائلات
         </button>
 
@@ -253,10 +267,10 @@ const {
           class="primary"
           @click="
             familyFilterOpen = false;
-            flash('تم تطبيق فلترة العائلات')
+            flash('تم تطبيق فلترة العائلات');
           "
         >
-          <Filter/>
+          <Filter />
           تطبيق فلترة العائلات
         </button>
       </div>
@@ -277,17 +291,14 @@ const {
         </div>
 
         <button @click="peopleFilterOpen = false">
-          <X/>
+          <X />
         </button>
       </div>
 
       <div class="fields-grid two">
         <label>
           اسم الفرد
-          <input
-            v-model="peopleFilters.name"
-            placeholder="اسم الفرد"
-          />
+          <input v-model="peopleFilters.name" placeholder="اسم الفرد" />
         </label>
 
         <label>
@@ -365,10 +376,7 @@ const {
           <select v-model="peopleFilters.education">
             <option value="">-- اختر --</option>
 
-            <option
-              v-for="education in educationOptions"
-              :key="education"
-            >
+            <option v-for="education in educationOptions" :key="education">
               {{ education }}
             </option>
           </select>
@@ -390,36 +398,29 @@ const {
         </label>
 
         <label>
+          الحالة
+          <select v-model="peopleFilters.martyr">
+            <option value="">الكل</option>
+            <option value="martyr">شهيد</option>
+            <option value="alive">على قيد الحياة</option>
+          </select>
+        </label>
+
+        <label>
           عمر الفرد من
-          <input
-            v-model="peopleFilters.minAge"
-            type="number"
-            min="0"
-          />
+          <input v-model="peopleFilters.minAge" type="number" min="0" />
         </label>
 
         <label>
           عمر الفرد إلى
-          <input
-            v-model="peopleFilters.maxAge"
-            type="number"
-            min="0"
-          />
+          <input v-model="peopleFilters.maxAge" type="number" min="0" />
         </label>
       </div>
 
       <div class="modal-actions">
-        <button
-          class="ghost"
-          @click="peopleFilterOpen = false"
-        >
-          إلغاء
-        </button>
+        <button class="ghost" @click="peopleFilterOpen = false">إلغاء</button>
 
-        <button
-          class="outline"
-          @click="clearPeopleFilters"
-        >
+        <button class="outline" @click="clearPeopleFilters">
           مسح خيارات الأفراد
         </button>
 
@@ -427,10 +428,10 @@ const {
           class="primary"
           @click="
             peopleFilterOpen = false;
-            flash('تم تطبيق فلترة الأفراد')
+            flash('تم تطبيق فلترة الأفراد');
           "
         >
-          <Filter/>
+          <Filter />
           تطبيق فلترة الأفراد
         </button>
       </div>
@@ -455,7 +456,7 @@ const {
         </div>
 
         <button @click="bulkMessageOpen = false">
-          <X/>
+          <X />
         </button>
       </div>
 
@@ -476,33 +477,22 @@ const {
         <b>معاينة الرسالة قبل الإرسال</b>
 
         <p>
-          {{
-            bulkMessage ||
-            'سيظهر نص الرسالة هنا كما سيصل إلى رب الأسرة.'
-          }}
+          {{ bulkMessage || "سيظهر نص الرسالة هنا كما سيصل إلى رب الأسرة." }}
         </p>
       </div>
 
       <div class="modal-actions">
-        <button
-          class="ghost"
-          @click="bulkMessageOpen = false"
-        >
-          إلغاء
-        </button>
+        <button class="ghost" @click="bulkMessageOpen = false">إلغاء</button>
 
         <button
           class="primary"
-          :disabled="
-            !bulkMessage.trim() ||
-            !filteredFamilies.length
-          "
+          :disabled="!bulkMessage.trim() || !filteredFamilies.length"
           @click="
             bulkMessageOpen = false;
-            flash('تم تأكيد طلب الإرسال الجماعي')
+            flash('تم تأكيد طلب الإرسال الجماعي');
           "
         >
-          <MessageCircle/>
+          <MessageCircle />
 
           تأكيد الإرسال إلى
           {{ filteredFamilies.length }}
@@ -529,7 +519,7 @@ const {
         </div>
 
         <button @click="selectedFamily = null">
-          <X/>
+          <X />
         </button>
       </div>
 
@@ -537,8 +527,8 @@ const {
         <span>
           <b>
             {{
-              selectedFamily.members.length +
-              (selectedFamily.headStatus === 'شهيد' ? 0 : 1)
+              selectedFamily.members.filter((m: any) => m.health !== 'شهيد').length +
+              (selectedFamily.headStatus === "شهيد" ? 0 : 1)
             }}
           </b>
 
@@ -555,32 +545,26 @@ const {
         <h3>جميع بيانات رب الأسرة</h3>
 
         <div class="detail-grid">
-          <Info label="الاسم الكامل" :value="selectedFamily.head"/>
-          <Info label="رقم الهوية" :value="selectedFamily.identity"/>
-          <Info label="الجوال الأساسي" :value="selectedFamily.phone"/>
+          <Info label="الاسم الكامل" :value="selectedFamily.head" />
+          <Info label="رقم الهوية" :value="selectedFamily.identity" />
+          <Info label="الجوال الأساسي" :value="selectedFamily.phone" />
+          <Info label="جوال بديل" :value="selectedFamily.altPhone" />
 
           <Info
             label="رقم واتساب"
-            :value="
-              `${selectedFamily.whatsappPrefix || '+970'}${selectedFamily.alternate}`
-            "
+            :value="`${selectedFamily.whatsappPrefix || '+970'}${selectedFamily.alternate}`"
           />
 
-          <Info label="تاريخ الميلاد" :value="selectedFamily.birth"/>
-          <Info label="الجنس" :value="selectedFamily.gender"/>
-          <Info label="الحالة الاجتماعية" :value="selectedFamily.marital"/>
-          <Info label="حالة رب الأسرة" :value="selectedFamily.headStatus"/>
-          <Info label="حالة العمل" :value="selectedFamily.work"/>
-          <Info label="الحالة الصحية" :value="selectedFamily.health"/>
+          <Info label="تاريخ الميلاد" :value="selectedFamily.birth" />
+          <Info label="الجنس" :value="selectedFamily.gender" />
+          <Info label="الحالة الاجتماعية" :value="selectedFamily.marital" />
+          <Info label="حالة رب الأسرة" :value="selectedFamily.headStatus" />
+          <Info label="حالة العمل" :value="selectedFamily.work" />
+          <Info label="الحالة الصحية" :value="selectedFamily.health" />
 
-          <Info
-            label="تفاصيل الحالة الصحية"
-            :value="selectedFamily.disease"
-          />
+          <Info label="تفاصيل الحالة الصحية" :value="selectedFamily.disease" />
 
-          <Info label="صفة الإقامة" :value="selectedFamily.residencyType"/>
-          <Info label="رقم كرت المؤن" :value="selectedFamily.rationCard"/>
-          <Info label="الحالة التعليمية" :value="selectedFamily.education"/>
+          <Info label="الحالة التعليمية" :value="selectedFamily.education" />
 
           <Info
             label="نوع الشهادة أو التخصص"
@@ -593,10 +577,7 @@ const {
         <h3>جميع معلومات السكن والنزوح</h3>
 
         <div class="detail-grid">
-          <Info
-            label="المنطقة الأصلية"
-            :value="selectedFamily.originalArea"
-          />
+          <Info label="المنطقة الأصلية" :value="selectedFamily.originalArea" />
 
           <Info
             label="العنوان الأصلي بالتفصيل"
@@ -609,19 +590,20 @@ const {
           />
 
           <Info
-            label="منطقة النزوح"
-            :value="selectedFamily.displacementArea"
+            label="حالة النزوح"
+            :value="
+              selectedFamily.displacementStatus ||
+              (selectedFamily.displacementArea ? 'نازح' : '')
+            "
           />
+          <Info label="منطقة النزوح" :value="selectedFamily.displacementArea" />
 
           <Info
             label="مكان النزوح بالتفصيل"
             :value="selectedFamily.residence"
           />
 
-          <Info
-            label="نوع مكان النزوح"
-            :value="selectedFamily.housing"
-          />
+          <Info label="نوع مكان النزوح" :value="selectedFamily.housing" />
         </div>
 
         <img
@@ -637,19 +619,13 @@ const {
 
         <div class="profile-documents">
           <figure v-if="selectedFamily.idPhoto">
-            <img
-              :src="photoSrc(selectedFamily.idPhoto)"
-              alt="صورة الهوية"
-            />
+            <img :src="photoSrc(selectedFamily.idPhoto)" alt="صورة الهوية" />
 
             <figcaption>صورة الهوية</figcaption>
           </figure>
 
           <figure v-if="selectedFamily.slipPhoto">
-            <img
-              :src="photoSrc(selectedFamily.slipPhoto)"
-              alt="صورة السليب"
-            />
+            <img :src="photoSrc(selectedFamily.slipPhoto)" alt="صورة السليب" />
 
             <figcaption>صورة السليب</figcaption>
           </figure>
@@ -660,11 +636,8 @@ const {
         <h3>الاحتياجات</h3>
 
         <div class="needs-view">
-          <span
-            v-for="need in selectedFamily.needs"
-            :key="need"
-          >
-            <Check/>
+          <span v-for="need in selectedFamily.needs" :key="need">
+            <Check />
             {{ need }}
           </span>
         </div>
@@ -674,10 +647,7 @@ const {
         <h3>جميع أفراد الأسرة</h3>
 
         <div class="drawer-members">
-          <article
-            v-for="member in selectedFamily.members"
-            :key="member.id"
-          >
+          <article v-for="member in selectedFamily.members" :key="member.id">
             <div class="member-card-title">
               <span class="avatar">
                 {{ member.first[0] }}
@@ -696,17 +666,14 @@ const {
             </div>
 
             <div class="detail-grid">
-              <Info label="رقم الهوية" :value="member.identity"/>
-              <Info label="تاريخ الميلاد" :value="member.birth"/>
+              <Info label="رقم الهوية" :value="member.identity" />
+              <Info label="تاريخ الميلاد" :value="member.birth" />
 
-              <Info
-                label="العمر"
-                :value="`${age(member.birth)} سنة`"
-              />
+              <Info label="العمر" :value="`${age(member.birth)} سنة`" />
 
-              <Info label="الجنس" :value="member.gender"/>
-              <Info label="الحالة الصحية" :value="member.health"/>
-              <Info label="الحالة التعليمية" :value="member.education"/>
+              <Info label="الجنس" :value="member.gender" />
+              <Info label="الحالة الصحية" :value="member.health" />
+              <Info label="الحالة التعليمية" :value="member.education" />
 
               <Info
                 label="نوع الشهادة أو التخصص"
@@ -715,19 +682,13 @@ const {
 
               <Info
                 label="الحالات الخاصة"
-                :value="
-                  (member.special || []).join('، ') ||
-                  'لا توجد'
-                "
+                :value="(member.special || []).join('، ') || 'لا توجد'"
               />
 
               <Info
                 v-if="member.health && member.health !== 'سليم'"
                 label="احتياجات الفرد"
-                :value="
-                  (member.healthNeeds || []).join('، ') ||
-                  'لم تحدد'
-                "
+                :value="(member.healthNeeds || []).join('، ') || 'لم تحدد'"
               />
             </div>
           </article>
@@ -738,10 +699,10 @@ const {
         class="primary wide"
         @click="
           bulkMessageOpen = true;
-          selectedFamily = null
+          selectedFamily = null;
         "
       >
-        <MessageCircle/>
+        <MessageCircle />
         كتابة رسالة لرب الأسرة
       </button>
     </aside>
@@ -767,39 +728,26 @@ const {
               {{ selectedMember.grandfather }}
               دلول
             </h2>
-
           </div>
         </div>
 
         <button @click="selectedMember = null">
-          <X/>
+          <X />
         </button>
       </div>
 
       <div class="detail-grid">
-        <Info
-          label="العائلة"
-          :value="familyOfMember(selectedMember)"
-        />
+        <Info label="العائلة" :value="familyOfMember(selectedMember)" />
 
-        <Info
-          label="رقم الهوية"
-          :value="selectedMember.identity"
-        />
+        <Info label="رقم الهوية" :value="selectedMember.identity" />
 
-        <Info
-          label="تاريخ الميلاد"
-          :value="selectedMember.birth"
-        />
+        <Info label="تاريخ الميلاد" :value="selectedMember.birth" />
 
-        <Info
-          label="العمر"
-          :value="`${age(selectedMember.birth)} سنة`"
-        />
+        <Info label="العمر" :value="`${age(selectedMember.birth)} سنة`" />
 
-        <Info label="الجنس" :value="selectedMember.gender"/>
-        <Info label="الحالة الصحية" :value="selectedMember.health"/>
-        <Info label="الحالة التعليمية" :value="selectedMember.education"/>
+        <Info label="الجنس" :value="selectedMember.gender" />
+        <Info label="الحالة الصحية" :value="selectedMember.health" />
+        <Info label="الحالة التعليمية" :value="selectedMember.education" />
 
         <Info
           label="نوع الشهادة أو التخصص"
@@ -808,22 +756,13 @@ const {
 
         <Info
           label="الحالات الخاصة"
-          :value="
-            (selectedMember.special || []).join('، ') ||
-            'لا توجد'
-          "
+          :value="(selectedMember.special || []).join('، ') || 'لا توجد'"
         />
 
         <Info
-          v-if="
-            selectedMember.health &&
-            selectedMember.health !== 'سليم'
-          "
+          v-if="selectedMember.health && selectedMember.health !== 'سليم'"
           label="احتياجات الفرد"
-          :value="
-            (selectedMember.healthNeeds || []).join('، ') ||
-            'لم تحدد'
-          "
+          :value="(selectedMember.healthNeeds || []).join('، ') || 'لم تحدد'"
         />
       </div>
     </section>
@@ -843,14 +782,11 @@ const {
         </div>
 
         <button @click="selectedPhoto = null">
-          <X/>
+          <X />
         </button>
       </div>
 
-      <img
-        :src="selectedPhoto.src"
-        :alt="selectedPhoto.title"
-      />
+      <img :src="selectedPhoto.src" :alt="selectedPhoto.title" />
     </section>
   </div>
 </template>

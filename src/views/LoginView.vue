@@ -1,7 +1,21 @@
 <script setup lang="ts">
 import { ref } from "vue";
-// بيانات نافذة استعادة كلمة المرور.
+import {
+  ArrowLeft,
+  Check,
+  Eye,
+  Info as InfoIcon,
+  MessageCircle,
+  Plus,
+  ShieldCheck,
+  UsersRound,
+  X,
+} from "lucide-vue-next";
+import { useRegistry } from "../composables/useRegistry";
+
+// بيانات نافذة استعادة كلمة المرور ومعلومات المطور.
 const forgotPasswordOpen = ref(false);
+const devModalOpen = ref(false);
 const recoveryStep = ref<1 | 2 | 3>(1);
 const recoveryIdentity = ref("");
 const recoveryToken = ref("");
@@ -66,7 +80,7 @@ async function requestPasswordChallenge() {
   }
 }
 
-// إرسال إجابة السؤال والتحقق منها.
+// إغلاق وسيط وتأكيد الإجابة
 async function confirmPasswordRecovery() {
   if (!recoveryAnswer.value) {
     flash("أدخل إجابة السؤال");
@@ -105,122 +119,15 @@ async function confirmPasswordRecovery() {
   }
 }
 
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  ChevronLeft,
-  CircleUserRound,
-  Download,
-  Edit3,
-  Eye,
-  FileSpreadsheet,
-  Filter,
-  HeartPulse,
-  Home,
-  LogOut,
-  Menu,
-  MessageCircle,
-  Phone,
-  Plus,
-  Search,
-  Settings,
-  ShieldCheck,
-  TentTree,
-  MapPin as MapPinIcon,
-  UserRound,
-  UsersRound,
-  X,
-} from "lucide-vue-next";
-import { useRegistry } from "../composables/useRegistry";
-
 // واجهة تسجيل الدخول وإنشاء مستخدم جديد.
 const {
-  Info,
-  view,
-  adminTab,
-  step,
   showPassword,
-  menuOpen,
-  familyFilterOpen,
-  peopleFilterOpen,
-  bulkMessageOpen,
-  bulkMessage,
-  selectedFamily,
-  selectedMember,
-  selectedPhoto,
-  editingMember,
-  editingSection,
-  editingGroup,
-  toast,
-  search,
-  peopleSearch,
   loginIdentity,
   loginPassword,
   loginBusy,
-  adminToken,
-  familyToken,
-  familyId,
-  editingFamily,
-  familySaving,
-  sheetsUrl,
-  sheetsConnected,
-  sheetsBusy,
-  needOptions,
-  conditions,
-  womenConditions,
-  memberConditions,
-  regions,
-  educationOptions,
-  educationNeedsDetail,
-  form,
-  memberDraft,
-  draftMembers,
-  sampleFamilies,
-  familyFilters,
-  peopleFilters,
-  allFamilies,
-  filteredFamilies,
-  allPeople,
-  filteredPeople,
-  fullName,
-  internationalWhatsapp,
-  currentFamily,
-  totalFamilies,
-  totalPeople,
-  displacedFamilies,
-  healthCases,
   flash,
-  clearFamilyFilters,
-  clearPeopleFilters,
   go,
-  normalizeName,
-  splitLegacyHeadName,
-  photoSrc,
-  convertTaaMarbuta,
-  normalizeFamilyNames,
-  loadFamilyIntoForm,
-  startFamilyEdit,
-  startSectionEdit,
-  startPasswordChange,
-  cancelSectionEdit,
-  openPhoto,
   loginUser,
-  setAdminTab,
-  logoutAdmin,
-  loadSheetsStatus,
-  loadAdminFamilies,
-  saveSheetsSettings,
-  nextStep,
-  toggleNeed,
-  saveMember,
-  editMember,
-  captureTentPhoto,
-  captureDocumentPhoto,
-  saveFamily,
-  exportExcel,
-  age,
-  familyOfMember,
 } = useRegistry();
 </script>
 
@@ -242,9 +149,20 @@ const {
       </div>
       <div class="brand-rings"><span></span><span></span><span></span></div>
     </section>
+
     <section class="login-panel">
+      <!-- زر معلومات المطور في الزاوية العليا اليمين تماماً لأقصى اللوحة اليسرى -->
+      <button
+        type="button"
+        class="dev-info-btn-top-right"
+        title="معلومات المطور"
+        @click="devModalOpen = true"
+      >
+        <InfoIcon :size="20" />
+      </button>
+
       <div class="login-card">
-        <img src="/logo.png" alt="شعار دلول" class="auth-logo" />
+        <img src="/دلول.jpeg" alt="شعار دلول" class="auth-logo" />
         <div>
           <span class="eyebrow blue">أهلاً بعودتك</span>
           <h2>تسجيل الدخول</h2>
@@ -269,8 +187,9 @@ const {
                 required
               /><button type="button" @click="showPassword = !showPassword">
                 <Eye :size="19" />
-              </button></div
-          ></label>
+              </button>
+            </div></label
+          >
           <div class="login-options">
             <label class="check"><input type="checkbox" /> تذكرني</label
             ><button
@@ -290,16 +209,52 @@ const {
         <button
           class="outline wide"
           @click="
-            editingFamily = false;
-            familyId = Date.now();
             go('register');
-            step = 1;
           "
         >
           <Plus :size="19" /> تسجيل مستخدم جديد
         </button>
       </div>
     </section>
+
+    <!-- نافذة معلومات المطور -->
+    <div
+      v-if="devModalOpen"
+      class="modal-layer"
+      @click.self="devModalOpen = false"
+    >
+      <section class="modal dev-info-modal-new">
+        <div class="dev-modal-header">
+          <button
+            type="button"
+            class="dev-close-btn"
+            @click="devModalOpen = false"
+          >
+            <X :size="18" />
+          </button>
+        </div>
+        <div class="dev-modal-body">
+          <div class="dev-title-wrapper">
+            <span class="dev-subtitle-line">عمل المهندس</span>
+            <h2 class="dev-name-line">يوسف منذر دلول</h2>
+          </div>
+          <p class="dev-desc">مبرمج ومطور مواقع الويب بأحدث التقنيات والأفكار.</p>
+          <p class="dev-note">
+            تم تصميم وتطوير المنصة بأعلى معايير الجودة والأمان لخدمة وتنظيم بيانات
+            العائلة.
+          </p>
+          <a
+            href="https://wa.me/972597120867"
+            target="_blank"
+            class="whatsapp-dev-link-new"
+          >
+            <MessageCircle :size="20" />
+            تواصل عبر الواتس: +972597120867
+          </a>
+        </div>
+      </section>
+    </div>
+
     <!-- نافذة استعادة كلمة المرور. -->
     <div
       v-if="forgotPasswordOpen"

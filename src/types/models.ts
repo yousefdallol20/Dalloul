@@ -26,6 +26,7 @@ export type Family = {
   grandfather?: string;
   identity: string;
   phone: string;
+  altPhone?: string;
   alternate: string;
   birth: string;
   gender: string;
@@ -43,6 +44,7 @@ export type Family = {
   originalArea: string;
   originalAddress: string;
   originalHousingStatus: string;
+  displacementStatus?: string;
   displacementArea: string;
   residence: string;
   housing: string;

@@ -1,45 +1,73 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import {
-  ArrowLeft, ArrowRight, Check, ChevronLeft, CircleUserRound,
-  Download, Edit3, Eye, FileSpreadsheet, Filter, HeartPulse, Home, LogOut,
-  Menu, MessageCircle, Phone, Plus, Search, Settings, ShieldCheck, TentTree,
-  MapPin as MapPinIcon, UserRound, UsersRound, X
-} from 'lucide-vue-next';
-import { useRegistry } from '../composables/useRegistry';
-import { patientNeedOptions } from '../constants/options';
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CircleUserRound,
+  Edit3,
+  FileSpreadsheet,
+  HeartPulse,
+  Home,
+  Plus,
+  ShieldCheck,
+  TentTree,
+  UserRound,
+  UsersRound,
+} from "lucide-vue-next";
+import { useRegistry } from "../composables/useRegistry";
+import {
+  patientNeedOptions,
+  originalAreas,
+  housingStatusOptions,
+  displacementStatusOptions,
+} from "../constants/options";
 
-// نموذج تسجيل العائلة وتعديل أقسامها الأربعة.
+const declarationAgreed = ref(false);
+
 const {
-  Info, view, adminTab, step, showPassword, menuOpen,
-  familyFilterOpen, peopleFilterOpen, bulkMessageOpen, bulkMessage,
-  selectedFamily, selectedMember, selectedPhoto, editingMember,
-  editingSection, editingGroup, toast, search, peopleSearch,
-  loginIdentity, loginPassword, loginBusy, adminToken, familyToken,
-  familyId, editingFamily, familySaving, sheetsUrl, sheetsConnected,
-  sheetsBusy, needOptions, conditions, womenConditions, memberConditions,
-  regions, educationOptions, educationNeedsDetail,
-  universitySpecializations, form, memberDraft, draftMembers,
-  sampleFamilies, familyFilters, peopleFilters, allFamilies,
-  filteredFamilies, allPeople, filteredPeople, fullName,
-  internationalWhatsapp, currentFamily, totalFamilies, totalPeople,
-  displacedFamilies, healthCases, flash, clearFamilyFilters,
-  clearPeopleFilters, go, normalizeName, splitLegacyHeadName,
-  photoSrc, convertTaaMarbuta, normalizeFamilyNames,
-  loadFamilyIntoForm, startFamilyEdit, startSectionEdit,
-  startPasswordChange, cancelSectionEdit, openPhoto, loginUser,
-  setAdminTab, logoutAdmin, loadSheetsStatus, loadAdminFamilies,
-  saveSheetsSettings, nextStep, toggleNeed, saveMember, editMember,
-  captureTentPhoto, captureDocumentPhoto, saveFamily, exportExcel,
-  age, familyOfMember
+  step,
+  editingSection,
+  editingGroup,
+  editingFamily,
+  familySaving,
+  needOptions,
+  memberConditions,
+  regions,
+  educationOptions,
+  educationNeedsDetail,
+  universitySpecializations,
+  form,
+  memberDraft,
+  draftMembers,
+  editingMember,
+  fullName,
+  go,
+  normalizeName,
+  photoSrc,
+  startSectionEdit,
+  cancelSectionEdit,
+  nextStep,
+  identityError,
+  memberIdentityError,
+  checkHeadIdentity,
+  checkMemberIdentity,
+  toggleNeed,
+  saveMember,
+  editMember,
+  captureTentPhoto,
+  captureDocumentPhoto,
+  saveFamily,
+  age,
 } = useRegistry();
 </script>
 
 <template>
   <header class="simple-header">
-    <img src="/logo.png" alt="دلول"/>
+    <img src="/دلول.jpeg" alt="دلول" />
 
     <button class="ghost" @click="go('login')">
-      <ArrowRight :size="18"/>
+      <ArrowRight :size="18" />
       العودة لتسجيل الدخول
     </button>
   </header>
@@ -48,24 +76,24 @@ const {
     <div class="page-title">
       <div>
         <span class="eyebrow blue">
-          {{ editingFamily ? 'تعديل ملف العائلة' : 'ملف عائلة جديد' }}
+          {{ editingFamily ? "تعديل ملف العائلة" : "ملف عائلة جديد" }}
         </span>
 
         <h1>
           {{
             editingSection
-              ? 'تعديل بيانات هذا القسم'
+              ? "تعديل بيانات هذا القسم"
               : editingFamily
-                ? 'تعديل بيانات العائلة'
-                : 'تسجيل بيانات العائلة'
+                ? "تعديل بيانات العائلة"
+                : "تسجيل بيانات العائلة"
           }}
         </h1>
 
         <p>
           {{
             editingFamily
-              ? 'يمكنك تعديل المعلومات المطلوبة، وستُحفظ فوق السجل نفسه في Google Sheets.'
-              : 'أدخل المعلومات بدقة، ويمكنك مراجعتها قبل الحفظ.'
+              ? "يمكنك تعديل المعلومات المطلوبة، وستُحفظ فوق السجل نفسه في Google Sheets."
+              : "أدخل المعلومات بدقة، ويمكنك مراجعتها قبل الحفظ."
           }}
         </p>
       </div>
@@ -74,9 +102,7 @@ const {
         الخطوة {{ step }} من 4
       </span>
 
-      <span v-else class="step-count">
-        تعديل قسم واحد
-      </span>
+      <span v-else class="step-count"> تعديل قسم واحد </span>
     </div>
 
     <div v-if="!editingSection" class="stepper">
@@ -85,37 +111,40 @@ const {
           'رب الأسرة',
           'السكن والنزوح',
           'أفراد الأسرة',
-          'الاحتياجات'
+          'الاحتياجات',
         ]"
         :key="stepName"
         class="step"
         :class="{
           active: step === index + 1,
-          done: step > index + 1
+          done: step > index + 1,
         }"
       >
-        <span>{{ step > index + 1 ? '✓' : index + 1 }}</span>
+        <span>{{ step > index + 1 ? "✓" : index + 1 }}</span>
         <b>{{ stepName }}</b>
       </div>
     </div>
 
-    <!-- الخطوة الأولى: بيانات رب الأسرة -->
     <section v-if="step === 1" class="form-card">
       <div class="section-head">
         <span class="section-icon">
-          <UserRound/>
+          <UserRound />
         </span>
 
         <div>
           <h2>
-            {{ editingGroup === 'documents' ? 'الصور والوثائق' : 'بيانات رب الأسرة' }}
+            {{
+              editingGroup === "documents"
+                ? "الصور والوثائق"
+                : "بيانات رب الأسرة"
+            }}
           </h2>
 
           <p>
             {{
-              editingGroup === 'documents'
-                ? 'تعديل صورة الهوية وصورة السليب'
-                : 'المعلومات الشخصية وبيانات التواصل والحالة'
+              editingGroup === "documents"
+                ? "تعديل صورة الهوية وصورة السليب"
+                : "المعلومات الشخصية وبيانات التواصل والحالة"
             }}
           </p>
         </div>
@@ -149,12 +178,12 @@ const {
 
           <label>
             اسم العائلة
-            <input value="دلول" disabled/>
+            <input value="دلول" disabled />
           </label>
         </div>
 
         <div class="name-preview">
-          <CircleUserRound/>
+          <CircleUserRound />
           <span>الاسم الكامل:</span>
           <b>{{ fullName }}</b>
         </div>
@@ -166,16 +195,25 @@ const {
               v-model="form.identity"
               maxlength="9"
               inputmode="numeric"
+              @input="
+                identityError = '';
+                form.identity.length === 9 && checkHeadIdentity();
+              "
+              @blur="checkHeadIdentity"
             />
+            <small v-if="identityError" class="field-error" lang="ar">{{
+              identityError
+            }}</small>
           </label>
 
           <label>
             رقم الجوال الأساسي *
-            <input
-              v-model="form.phone"
-              maxlength="10"
-              inputmode="tel"
-            />
+            <input v-model="form.phone" maxlength="10" inputmode="tel" />
+          </label>
+
+          <label>
+            <span lang="ar">رقم الجوال الاحتياطي</span>
+            <input v-model="form.altPhone" maxlength="10" inputmode="tel" placeholder="رقم جوال بديل" />
           </label>
 
           <label>
@@ -198,11 +236,11 @@ const {
 
           <label>
             تاريخ الميلاد *
-            <input v-model="form.birth" type="date"/>
+            <input v-model="form.birth" type="date" />
           </label>
 
           <label>
-            الجنس
+            الجنس *
 
             <select v-model="form.gender">
               <option value="" disabled>-- اختر --</option>
@@ -212,7 +250,7 @@ const {
           </label>
 
           <label>
-            الحالة الاجتماعية
+            الحالة الاجتماعية *
 
             <select v-model="form.marital">
               <option value="" disabled>-- اختر --</option>
@@ -226,7 +264,7 @@ const {
           </label>
 
           <label>
-            حالة رب الأسرة
+            حالة رب الأسرة *
 
             <select v-model="form.headStatus">
               <option value="" disabled>-- اختر --</option>
@@ -262,21 +300,6 @@ const {
           </label>
 
           <label>
-            صفة الإقامة
-
-            <select v-model="form.residencyType">
-              <option value="" disabled>-- اختر --</option>
-              <option>مواطن</option>
-              <option>لاجئ</option>
-            </select>
-          </label>
-
-          <label v-if="form.residencyType === 'لاجئ'">
-            رقم كرت المؤن *
-            <input v-model="form.rationCard" inputmode="numeric"/>
-          </label>
-
-          <label>
             الحالة التعليمية
 
             <select
@@ -285,10 +308,7 @@ const {
             >
               <option value="" disabled>-- اختر --</option>
 
-              <option
-                v-for="education in educationOptions"
-                :key="education"
-              >
+              <option v-for="education in educationOptions" :key="education">
                 {{ education }}
               </option>
             </select>
@@ -301,7 +321,9 @@ const {
               <option value="" disabled>-- اختر التخصص --</option>
 
               <optgroup
-                v-for="(specializations, groupName) in universitySpecializations"
+                v-for="(
+                  specializations, groupName
+                ) in universitySpecializations"
                 :key="groupName"
                 :label="groupName"
               >
@@ -317,10 +339,7 @@ const {
           </label>
         </div>
 
-        <label
-          v-if="form.health && form.health !== 'سليم'"
-          class="full-field"
-        >
+        <label v-if="form.health && form.health !== 'سليم'" class="full-field">
           تفاصيل الحالة الصحية
 
           <textarea
@@ -330,28 +349,36 @@ const {
         </label>
       </template>
 
-      <div
-        v-if="editingGroup !== 'head'"
-        class="document-uploads"
-      >
+      <div v-if="editingGroup !== 'head'" class="document-uploads">
         <div class="upload-box compact">
-          <UserRound :size="32"/>
+          <UserRound :size="32" />
 
           <div>
-            <b>صورة الهوية *</b>
+            <b>صورة الهوية (اختياري)</b>
             <p>أضف صورة واضحة للهوية بصيغة JPG أو PNG.</p>
           </div>
 
-          <label class="outline small">
-            إضافة الصورة
-
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              hidden
-              @change="captureDocumentPhoto($event, 'idPhoto')"
-            />
-          </label>
+          <div class="photo-actions">
+            <label class="outline small">
+              <span lang="ar">من المعرض</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                @change="captureDocumentPhoto($event, 'idPhoto')"
+              />
+            </label>
+            <label class="outline small">
+              <span lang="ar">التقاط بالكاميرا</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+                @change="captureDocumentPhoto($event, 'idPhoto')"
+              />
+            </label>
+          </div>
 
           <img
             v-if="form.idPhoto"
@@ -362,23 +389,34 @@ const {
         </div>
 
         <div class="upload-box compact">
-          <FileSpreadsheet :size="32"/>
+          <FileSpreadsheet :size="32" />
 
           <div>
-            <b>صورة السليب *</b>
+            <b>صورة السليب (اختياري)</b>
             <p>أضف صورة واضحة للسليب بصيغة JPG أو PNG.</p>
           </div>
 
-          <label class="outline small">
-            إضافة الصورة
-
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              hidden
-              @change="captureDocumentPhoto($event, 'slipPhoto')"
-            />
-          </label>
+          <div class="photo-actions">
+            <label class="outline small">
+              <span lang="ar">من المعرض</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                @change="captureDocumentPhoto($event, 'slipPhoto')"
+              />
+            </label>
+            <label class="outline small">
+              <span lang="ar">التقاط بالكاميرا</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+                @change="captureDocumentPhoto($event, 'slipPhoto')"
+              />
+            </label>
+          </div>
 
           <img
             v-if="form.slipPhoto"
@@ -390,11 +428,10 @@ const {
       </div>
     </section>
 
-    <!-- الخطوة الثانية: السكن والنزوح -->
     <section v-else-if="step === 2" class="form-card">
       <div class="section-head">
         <span class="section-icon">
-          <Home/>
+          <Home />
         </span>
 
         <div>
@@ -406,87 +443,107 @@ const {
       <div class="fields-grid two">
         <label>
           المنطقة الأصلية *
-          <input
-            v-model="form.originalArea"
-            placeholder="المدينة، الحي"
-          />
-        </label>
-
-        <label>
-          العنوان الأصلي بالتفصيل
-          <input v-model="form.originalAddress"/>
-        </label>
-
-        <label>
-          حالة السكن الأصلي
-
-          <select v-model="form.originalHousingStatus">
-            <option value="" disabled>-- اختر --</option>
-            <option>سليم</option>
-            <option>متضرر جزئياً</option>
-            <option>متضرر كلياً</option>
-            <option>مدمّر</option>
-            <option>غير معروف</option>
+          <select v-model="form.originalArea">
+            <option value="" disabled>-- اختر المنطقة الأصلية --</option>
+            <option v-for="area in originalAreas" :key="area" :value="area">
+              {{ area }}
+            </option>
           </select>
         </label>
 
         <label>
-          منطقة النزوح
+          العنوان الأصلي بالتفصيل *
+          <input v-model="form.originalAddress" placeholder="الحي، الشارع، أقرب معلم" />
+        </label>
 
-          <select v-model="form.displacementArea">
+        <label>
+          حالة السكن الأصلي *
+
+          <select v-model="form.originalHousingStatus">
+            <option value="" disabled>-- اختر --</option>
+            <option
+              v-for="status in housingStatusOptions"
+              :key="status"
+              :value="status"
+            >
+              {{ status }}
+            </option>
+          </select>
+        </label>
+        
+        <label>
+          حالة النزوح *
+          <select v-model="form.displacementStatus">
+            <option value="" disabled>-- اختر --</option>
+            <option
+              v-for="status in displacementStatusOptions"
+              :key="status"
+              :value="status"
+            >
+              {{ status }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>منطقة النزوح <span v-if="form.displacementStatus === 'نازح'">*</span></span>
+
+          <select
+            v-model="form.displacementArea"
+            :disabled="form.displacementStatus !== 'نازح'"
+          >
             <option value="" disabled>-- اختر --</option>
 
-            <option
-              v-for="region in regions"
-              :key="region"
-            >
+            <option v-for="region in regions" :key="region">
               {{ region }}
             </option>
           </select>
         </label>
 
         <label>
-          مكان النزوح بالتفصيل *
+          <span>مكان النزوح بالتفصيل <span v-if="form.displacementStatus === 'نازح'">*</span></span>
           <input
             v-model="form.residence"
             placeholder="المدينة، الحي، أقرب معلم"
+            :disabled="form.displacementStatus !== 'نازح'"
           />
         </label>
 
         <label>
-          نوع مكان النزوح
+          <span>نوع مكان النزوح <span v-if="form.displacementStatus === 'نازح'">*</span></span>
 
-          <select v-model="form.housing">
+          <select
+            v-model="form.housing"
+            :disabled="form.displacementStatus !== 'نازح'"
+          >
             <option value="" disabled>-- اختر --</option>
             <option>منزل ملك</option>
             <option>شقة مستأجرة</option>
             <option>منزل أقارب</option>
             <option>مركز إيواء</option>
             <option>خيمة</option>
-            <option>مكان مفتوح</option>
           </select>
         </label>
       </div>
 
-      <div v-if="form.housing === 'خيمة'" class="upload-box">
-        <TentTree :size="38"/>
+      <div
+        v-if="form.displacementStatus === 'نازح' && form.housing === 'خيمة'"
+        class="upload-box"
+      >
+        <TentTree :size="38" />
 
         <div>
-          <b>تصوير الخيمة الآن</b>
+          <b>صورة الخيمة *</b>
 
-          <p>
-            يفتح هذا الزر كاميرا الهاتف مباشرة، ولا يقبل اختيار
-            صورة محفوظة في الأجهزة الداعمة.
-          </p>
+          <p>يرجى اختيار صورة واضحة للخيمة من الخارج</p>
         </div>
 
         <label class="outline small">
-          فتح الكاميرا
+          اختيار صورة
 
           <input
             type="file"
-            accept="image/*"
-            capture="environment"
+            accept="image/jpeg,image/png,image/webp"
             hidden
             @change="captureTentPhoto"
           />
@@ -494,18 +551,17 @@ const {
 
         <img
           v-if="form.tentPhoto"
-          :src="form.tentPhoto"
-          alt="صورة الخيمة الملتقطة"
+          :src="photoSrc(form.tentPhoto)"
+          alt="صورة الخيمة"
           class="tent-preview"
         />
       </div>
     </section>
 
-    <!-- الخطوة الثالثة: أفراد الأسرة -->
     <section v-else-if="step === 3" class="form-card">
       <div class="section-head">
         <span class="section-icon">
-          <UsersRound/>
+          <UsersRound />
         </span>
 
         <div>
@@ -513,16 +569,11 @@ const {
           <p>أضف كل فرد، ثم يمكنك تعديل بياناته في أي وقت</p>
         </div>
 
-        <span class="count-pill">
-          {{ draftMembers.length }} أفراد
-        </span>
+        <span class="count-pill"> {{ draftMembers.length }} أفراد </span>
       </div>
 
       <div v-if="draftMembers.length" class="members-list">
-        <article
-          v-for="member in draftMembers"
-          :key="member.id"
-        >
+        <article v-for="member in draftMembers" :key="member.id">
           <span class="avatar">
             {{ member.first[0] }}
           </span>
@@ -536,17 +587,16 @@ const {
             </b>
 
             <small>
-              {{ member.relation }} ·
-              {{ member.identity }} ·
-              {{ age(member.birth) }} سنة
+              {{ member.relation }} · {{ member.identity }} ·
+              <span v-if="member.health === 'شهيد'" class="tag warning"
+                >شهيد (غير محتسب)</span
+              >
+              <span v-else>{{ age(member.birth) }} سنة</span>
             </small>
           </div>
 
-          <button
-            class="icon-button"
-            @click="editMember(member)"
-          >
-            <Edit3 :size="17"/>
+          <button class="icon-button" @click="editMember(member)">
+            <Edit3 :size="17" />
             تعديل
           </button>
         </article>
@@ -554,7 +604,7 @@ const {
 
       <div class="member-form">
         <h3>
-          {{ editingMember ? 'تعديل بيانات الفرد' : 'إضافة فرد جديد' }}
+          {{ editingMember ? "تعديل بيانات الفرد" : "إضافة فرد جديد" }}
         </h3>
 
         <div class="fields-grid four">
@@ -581,47 +631,61 @@ const {
 
             <input
               v-model="memberDraft.grandfather"
-              @input="memberDraft.grandfather = normalizeName(memberDraft.grandfather)"
+              @input="
+                memberDraft.grandfather = normalizeName(memberDraft.grandfather)
+              "
             />
           </label>
 
           <label>
             اسم العائلة
-            <input value="دلول" disabled/>
+            <input value="دلول" disabled />
           </label>
         </div>
 
-        <div class="fields-grid three">
+        <div class="fields-grid three member-compact-grid">
           <label>
             رقم الهوية
 
             <input
               v-model="memberDraft.identity"
               maxlength="9"
+              inputmode="numeric"
+              @input="
+                memberIdentityError = '';
+                memberDraft.identity.length === 9 && checkMemberIdentity();
+              "
+              @blur="checkMemberIdentity"
             />
+            <small v-if="memberIdentityError" class="field-error" lang="ar">{{
+              memberIdentityError
+            }}</small>
           </label>
 
           <label>
             تاريخ الميلاد
 
-            <input
-              v-model="memberDraft.birth"
-              type="date"
-            />
+            <input v-model="memberDraft.birth" type="date" />
           </label>
 
-          <label>
-            الجنس
+          <div class="inline-pair">
+            <label class="compact-sub-label">
+              الجنس
+              <select
+                v-model="memberDraft.gender"
+                @change="memberDraft.special = []"
+              >
+                <option value="" disabled>-- اختر --</option>
+                <option>ذكر</option>
+                <option>أنثى</option>
+              </select>
+            </label>
 
-            <select
-              v-model="memberDraft.gender"
-              @change="memberDraft.special = []"
-            >
-              <option value="" disabled>-- اختر --</option>
-              <option>ذكر</option>
-              <option>أنثى</option>
-            </select>
-          </label>
+            <label class="compact-sub-label" v-if="memberDraft.birth">
+              العمر
+              <input type="text" :value="age(memberDraft.birth) + ' سنة'" disabled class="disabled-compact" />
+            </label>
+          </div>
 
           <label>
             صلة القرابة
@@ -639,13 +703,17 @@ const {
           </label>
 
           <label>
-            الحالة الصحية
+            الحالة الصحية / العامة
 
             <select
               v-model="memberDraft.health"
               @change="
-                memberDraft.health === 'سليم' &&
-                (memberDraft.healthNeeds = [])
+                if (
+                  memberDraft.health === 'سليم' ||
+                  memberDraft.health === 'شهيد'
+                ) {
+                  memberDraft.healthNeeds = [];
+                }
               "
             >
               <option value="" disabled>-- اختر --</option>
@@ -653,8 +721,24 @@ const {
               <option>مرض مزمن</option>
               <option>مصاب</option>
               <option>ذو إعاقة</option>
+              <option>شهيد</option>
             </select>
           </label>
+
+          <template v-if="memberDraft.health === 'شهيد'">
+            <label>
+              تاريخ الشهادة *
+              <input v-model="(memberDraft as any).martyrDate" type="date" />
+            </label>
+
+            <label>
+              تفاصيل الاستشهاد
+              <input
+                v-model="(memberDraft as any).martyrDetails"
+                placeholder="مثال: استهداف المنزل / حي الزيتون"
+              />
+            </label>
+          </template>
 
           <label>
             الحالة التعليمية
@@ -665,10 +749,7 @@ const {
             >
               <option value="" disabled>-- اختر --</option>
 
-              <option
-                v-for="education in educationOptions"
-                :key="education"
-              >
+              <option v-for="education in educationOptions" :key="education">
                 {{ education }}
               </option>
             </select>
@@ -681,7 +762,9 @@ const {
               <option value="" disabled>-- اختر التخصص --</option>
 
               <optgroup
-                v-for="(specializations, groupName) in universitySpecializations"
+                v-for="(
+                  specializations, groupName
+                ) in universitySpecializations"
                 :key="groupName"
                 :label="groupName"
               >
@@ -697,7 +780,10 @@ const {
           </label>
         </div>
 
-        <div v-if="memberDraft.gender" class="specials">
+        <div
+          v-if="memberDraft.gender && memberDraft.health !== 'شهيد'"
+          class="specials"
+        >
           <b>حالات خاصة (اختياري)</b>
 
           <div>
@@ -718,7 +804,11 @@ const {
         </div>
 
         <div
-          v-if="memberDraft.health && memberDraft.health !== 'سليم'"
+          v-if="
+            memberDraft.health &&
+            memberDraft.health !== 'سليم' &&
+            memberDraft.health !== 'شهيد'
+          "
           class="specials"
         >
           <b>احتياجات الفرد</b>
@@ -741,53 +831,49 @@ const {
           </div>
         </div>
 
-        <button class="secondary" @click="saveMember">
-          <Plus :size="18"/>
+        <p class="form-note" lang="ar">
+          ملاحظة: يرجى الضغط على زر «إضافة الفرد» قبل حفظ البيانات.
+        </p>
 
-          {{ editingMember ? 'حفظ التعديلات' : 'إضافة الفرد' }}
+        <button class="secondary" @click="saveMember">
+          <Plus :size="18" />
+          {{ editingMember ? "حفظ التعديلات" : "إضافة الفرد" }}
         </button>
       </div>
     </section>
 
-    <!-- الخطوة الرابعة: الاحتياجات وكلمة المرور -->
     <section v-else class="form-card">
       <div class="section-head">
         <span class="section-icon">
-          <HeartPulse/>
+          <HeartPulse />
         </span>
 
         <div>
           <h2>
             {{
-              editingGroup === 'password'
-                ? 'تغيير كلمة المرور'
-                : editingGroup === 'needs'
-                  ? 'الاحتياجات ذات الأولوية'
-                  : 'الاحتياجات وكلمة المرور'
+              editingGroup === "password"
+                ? "تغيير كلمة المرور"
+                : editingGroup === "needs"
+                  ? "الاحتياجات ذات الأولوية"
+                  : "الاحتياجات وكلمة المرور"
             }}
           </h2>
 
           <p>
             {{
-              editingGroup === 'password'
-                ? 'اكتب كلمة المرور الجديدة وأكدها'
-                : 'اختر أهم 3 احتياجات للعائلة بحد أقصى'
+              editingGroup === "password"
+                ? "اكتب كلمة المرور الجديدة وأكدها"
+                : "اختر أهم 3 احتياجات للعائلة بحد أقصى"
             }}
           </p>
         </div>
 
-        <span
-          v-if="editingGroup !== 'password'"
-          class="count-pill"
-        >
+        <span v-if="editingGroup !== 'password'" class="count-pill">
           {{ form.needs.length }} / 3
         </span>
       </div>
 
-      <div
-        v-if="editingGroup !== 'password'"
-        class="needs-grid"
-      >
+      <div v-if="editingGroup !== 'password'" class="needs-grid">
         <button
           v-for="need in needOptions"
           :key="need"
@@ -795,32 +881,23 @@ const {
           @click="toggleNeed(need)"
         >
           <span>
-            {{ form.needs.includes(need) ? '✓' : '+' }}
+            {{ form.needs.includes(need) ? "✓" : "+" }}
           </span>
 
           {{ need }}
         </button>
       </div>
 
-      <div
-        v-if="editingGroup !== 'needs'"
-        class="password-block"
-      >
+      <div v-if="editingGroup !== 'needs'" class="password-block">
         <h3>
           {{
-            editingFamily
-              ? 'تغيير كلمة المرور (اختياري)'
-              : 'تعيين كلمة المرور'
+            editingFamily ? "تغيير كلمة المرور (اختياري)" : "تعيين كلمة المرور"
           }}
         </h3>
 
         <div class="fields-grid two">
           <label>
-            {{
-              editingFamily
-                ? 'كلمة المرور الجديدة'
-                : 'كلمة المرور'
-            }}
+            {{ editingFamily ? "كلمة المرور الجديدة" : "كلمة المرور *" }}
 
             <input
               v-model="form.password"
@@ -834,7 +911,7 @@ const {
           </label>
 
           <label>
-            تأكيد كلمة المرور
+            {{ editingFamily ? "تأكيد كلمة المرور الجديدة" : "تأكيد كلمة المرور *" }}
 
             <input
               v-model="form.confirm"
@@ -845,21 +922,27 @@ const {
         </div>
 
         <p>
-          <ShieldCheck :size="17"/>
+          <ShieldCheck :size="17" />
 
           {{
             editingFamily
-              ? 'اترك الحقلين فارغين إذا لم ترغب بتغيير كلمة المرور.'
-              : 'ستستخدم رقم الهوية وكلمة المرور للدخول لاحقاً.'
+              ? "اترك الحقلين فارغين إذا لم ترغب بتغيير كلمة المرور."
+              : "ستستخدم رقم الهوية وكلمة المرور للدخول لاحقاً."
           }}
         </p>
       </div>
+
+      <div v-if="!editingFamily" class="declaration-block">
+        <label class="check declaration-check">
+          <input v-model="declarationAgreed" type="checkbox" />
+          <span>
+            أتعهد بصحة البيانات المدخلة، وأي خطأ قد يفقدني الحق فيما يترتب عليه.
+          </span>
+        </label>
+      </div>
     </section>
 
-    <div
-      v-if="editingSection"
-      class="form-actions section-save-actions"
-    >
+    <div v-if="editingSection" class="form-actions section-save-actions">
       <button
         class="outline"
         :disabled="familySaving"
@@ -873,9 +956,9 @@ const {
         :disabled="familySaving"
         @click="saveFamily"
       >
-        <Check :size="18"/>
+        <Check :size="18" />
 
-        {{ familySaving ? 'جارٍ الحفظ...' : 'حفظ هذا القسم' }}
+        {{ familySaving ? "جارٍ الحفظ..." : "حفظ هذا القسم" }}
       </button>
     </div>
 
@@ -885,7 +968,7 @@ const {
         :disabled="step === 1 || familySaving"
         @click="step--"
       >
-        <ArrowRight :size="18"/>
+        <ArrowRight :size="18" />
         السابق
       </button>
 
@@ -896,25 +979,49 @@ const {
         @click="nextStep"
       >
         التالي
-        <ArrowLeft :size="18"/>
+        <ArrowLeft :size="18" />
       </button>
 
       <button
         v-else
         class="primary success"
-        :disabled="familySaving"
+        :disabled="familySaving || (!editingFamily && !declarationAgreed)"
         @click="saveFamily"
       >
-        <Check :size="18"/>
+        <Check :size="18" />
 
         {{
           familySaving
-            ? 'جارٍ الحفظ...'
+            ? "جارٍ الحفظ..."
             : editingFamily
-              ? 'حفظ جميع التعديلات'
-              : 'حفظ العائلة'
+              ? "حفظ جميع التعديلات"
+              : "حفظ العائلة"
         }}
       </button>
     </div>
   </main>
 </template>
+
+<style scoped>
+.member-form .fields-grid label,
+.member-form .fields-grid input,
+.member-form .fields-grid select {
+  font-size: 13px !important;
+}
+
+.inline-pair {
+  display: flex;
+  gap: 10px;
+}
+
+.inline-pair > label {
+  flex: 1;
+}
+
+.disabled-compact {
+  background-color: #f8fafc;
+  color: #64748b;
+  text-align: center;
+  font-weight: 600;
+}
+</style>

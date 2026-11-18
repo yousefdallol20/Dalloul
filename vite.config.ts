@@ -103,6 +103,14 @@ function localApi(adminId: string, adminPassword: string): Plugin {
           }
         }
 
+        if (request.method === 'POST' && pathname === '/api/families/check-identity') {
+          const body = await readBody();
+          try {
+            const result = await callSheets({ action: 'checkIdentity', identity: body?.identity, exclude: body?.exclude });
+            return send(200, { exists: Boolean(result?.exists) });
+          } catch { return send(200, { exists: false }); }
+        }
+
         if (request.method === 'POST' && pathname === '/api/families/login') {
           const body = await readBody();
           try {
@@ -116,7 +124,7 @@ function localApi(adminId: string, adminPassword: string): Plugin {
           const body = await readBody();
           try {
             const result = await callSheets({ action: 'registerFamily', family: body?.family, password: body?.password });
-            if (!result?.ok) return send(409, { error: result?.error === 'IDENTITY_EXISTS' ? 'رقم الهوية مسجل مسبقًا' : result?.error });
+            if (!result?.ok) return send(409, { error: result?.error === 'IDENTITY_EXISTS' ? `تم استخدام الهوية ${result.identity || ''} من قبل، يرجى التحقق من الرقم` : result?.error });
             return send(200, { ok: true, family: result.family, token: `local-family.${body.family.identity}` });
           } catch { return send(503, { error: 'Google Sheets غير مربوط بعد' }); }
         }
@@ -126,7 +134,7 @@ function localApi(adminId: string, adminPassword: string): Plugin {
           const body = await readBody();
           try {
             const result = await callSheets({ action: 'updateFamily', originalIdentity: familyIdentity, family: body?.family, newPassword: body?.newPassword || '' });
-            if (!result?.ok) return send(409, { error: result?.error === 'IDENTITY_EXISTS' ? 'رقم الهوية الجديد مستخدم لعائلة أخرى' : result?.error });
+            if (!result?.ok) return send(409, { error: result?.error === 'IDENTITY_EXISTS' ? `تم استخدام الهوية ${result.identity || ''} من قبل، يرجى التحقق من الرقم` : result?.error });
             return send(200, { ok: true, family: result.family, token: `local-family.${body.family.identity}` });
           } catch { return send(503, { error: 'Google Sheets غير مربوط بعد' }); }
         }

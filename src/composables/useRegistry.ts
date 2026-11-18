@@ -4,7 +4,8 @@ import {
   h,
   onMounted,
   reactive,
-  ref
+  ref,
+  watch
 } from 'vue';
 
 import {
@@ -48,12 +49,9 @@ import {
   womenConditions
 } from '../constants/options';
 
-// هذا الملف هو العقل المركزي للمشروع.
-// يجمع حالة الصفحات والعمليات المشتركة في مكان واحد.
 let registryState: ReturnType<typeof createRegistry> | null = null;
 
 function createRegistry() {
-  // مكوّن موحد لعرض اسم المعلومة وقيمتها.
   const Info = defineComponent({
     props: {
       label: String,
@@ -75,7 +73,6 @@ function createRegistry() {
       ])
   });
 
-  // حالة الصفحات.
   const view = ref<'login' | 'register' | 'family' | 'admin'>('login');
 
   const adminTab = ref<'families' | 'people' | 'settings'>(
@@ -101,6 +98,9 @@ function createRegistry() {
   } | null>(null);
 
   const editingMember = ref<number | null>(null);
+  const identityError = ref('');
+  const memberIdentityError = ref('');
+  const originalIdentity = ref('');
   const editingSection = ref<number | null>(null);
 
   const editingGroup = ref<
@@ -138,13 +138,13 @@ function createRegistry() {
   const sheetsConnected = ref(false);
   const sheetsBusy = ref(false);
 
-  // النموذج الرئيسي لبيانات العائلة.
   const form = reactive({
     first: '',
     father: '',
     grandfather: '',
     identity: '',
     phone: '',
+    altPhone: '',
     alternate: '',
     birth: '',
     gender: '',
@@ -161,6 +161,7 @@ function createRegistry() {
     education: '',
     educationDetail: '',
     originalHousingStatus: '',
+    displacementStatus: '',
     displacementArea: '',
     residence: '',
     housing: '',
@@ -172,7 +173,27 @@ function createRegistry() {
     confirm: ''
   });
 
-  // نموذج إضافة أو تعديل فرد.
+  watch(
+    () => form.displacementStatus,
+    (status) => {
+      if (status === 'غير نازح') {
+        form.displacementArea = '';
+        form.residence = '';
+        form.housing = '';
+        form.tentPhoto = '';
+      }
+    }
+  );
+
+  watch(
+    () => form.housing,
+    (housing) => {
+      if (housing !== 'خيمة') {
+        form.tentPhoto = '';
+      }
+    }
+  );
+
   const memberDraft = reactive<Member>({
     id: Date.now(),
     first: '',
@@ -189,7 +210,6 @@ function createRegistry() {
     healthNeeds: []
   });
 
-  // حالات النساء تظهر فقط عندما يكون جنس الفرد أنثى.
   const memberConditions = computed(() =>
     memberDraft.gender === 'أنثى'
       ? [...conditions, ...womenConditions]
@@ -199,7 +219,6 @@ function createRegistry() {
   const draftMembers = ref<Member[]>([]);
   const sampleFamilies = ref<Family[]>([]);
 
-  // فلترة العائلات.
   const familyFilters = reactive({
     head: '',
     identity: '',
@@ -212,21 +231,23 @@ function createRegistry() {
     originalArea: '',
     originalAddress: '',
     originalHousingStatus: '',
+    displacementStatus: '',
     displacementArea: '',
     housing: '',
     residence: '',
     hasTentPhoto: '',
     need: '',
+    familyStatus: '',
     minMembers: '',
     maxMembers: ''
   });
 
-  // فلترة الأفراد.
   const peopleFilters = reactive({
     name: '',
     identity: '',
     familyHead: '',
     gender: '',
+    martyr: '',
     health: '',
     healthNeeds: [] as string[],
     education: '',
@@ -235,7 +256,6 @@ function createRegistry() {
     maxAge: ''
   });
 
-  // ترتيب العائلات حسب عدد أفرادها.
   const allFamilies = computed(() =>
     [...sampleFamilies.value].sort(
       (firstFamily, secondFamily) =>
@@ -244,12 +264,15 @@ function createRegistry() {
     )
   );
 
-  // نتائج فلترة العائلات.
   const filteredFamilies = computed(() =>
     allFamilies.value.filter((family) => {
       const membersCount =
-        family.members.length +
+        family.members.filter((m) => m.health !== 'شهيد').length +
         (family.headStatus === 'شهيد' ? 0 : 1);
+
+      const isAllMartyrs =
+        family.headStatus === 'شهيد' &&
+        (family.members || []).every((m: any) => m.health === 'شهيد');
 
       const text = `
         ${family.head}
@@ -270,7 +293,7 @@ function createRegistry() {
           family.identity.includes(familyFilters.identity)) &&
 
         (!familyFilters.phone ||
-          `${family.phone} ${family.alternate} ${family.whatsapp || ''}`
+            `${family.phone} ${family.altPhone || ''} ${family.alternate} ${family.whatsapp || ''}`
             .includes(familyFilters.phone)) &&
 
         (!familyFilters.gender ||
@@ -289,9 +312,7 @@ function createRegistry() {
           family.health === familyFilters.health) &&
 
         (!familyFilters.originalArea ||
-          family.originalArea.includes(
-            familyFilters.originalArea
-          )) &&
+          family.originalArea === familyFilters.originalArea) &&
 
         (!familyFilters.originalAddress ||
           family.originalAddress.includes(
@@ -301,6 +322,11 @@ function createRegistry() {
         (!familyFilters.originalHousingStatus ||
           family.originalHousingStatus ===
             familyFilters.originalHousingStatus) &&
+
+        (!familyFilters.displacementStatus ||
+          (family.displacementStatus ||
+            (family.displacementArea ? 'نازح' : '')) ===
+            familyFilters.displacementStatus) &&
 
         (!familyFilters.displacementArea ||
           family.displacementArea ===
@@ -324,6 +350,11 @@ function createRegistry() {
         (!familyFilters.need ||
           family.needs.includes(familyFilters.need)) &&
 
+        (!familyFilters.familyStatus ||
+          (familyFilters.familyStatus === 'شهداء'
+            ? isAllMartyrs
+            : !isAllMartyrs)) &&
+
         (!familyFilters.minMembers ||
           membersCount >=
             Number(familyFilters.minMembers)) &&
@@ -335,46 +366,42 @@ function createRegistry() {
     })
   );
 
-  // جميع الأفراد، مع إضافة رب الأسرة.
   const allPeople = computed(() =>
     allFamilies.value
       .flatMap((family) => [
-        ...(
-          family.headStatus === 'شهيد'
-            ? []
-            : [
-                {
-                  id: family.id,
+        {
+          id: family.id,
 
-                  first:
-                    family.first ||
-                    splitLegacyHeadName(family.head).first,
+          first:
+            family.first ||
+            splitLegacyHeadName(family.head).first,
 
-                  father:
-                    family.father ||
-                    splitLegacyHeadName(family.head).father,
+          father:
+            family.father ||
+            splitLegacyHeadName(family.head).father,
 
-                  grandfather:
-                    family.grandfather ||
-                    splitLegacyHeadName(family.head).grandfather,
+          grandfather:
+            family.grandfather ||
+            splitLegacyHeadName(family.head).grandfather,
 
-                  identity: family.identity,
-                  birth: family.birth,
-                  gender: family.gender,
-                  relation: 'رب الأسرة',
-                  health: family.health,
-                  education: family.education || '—',
-                  educationDetail:
-                    family.educationDetail || '',
-                  special: [],
-                  healthNeeds: [],
-                  familyHead: family.head
-                }
-              ]
-        ),
+          identity: family.identity,
+          birth: family.birth,
+          gender: family.gender,
+          relation: 'رب الأسرة',
+          health: family.headStatus === 'شهيد' ? 'شهيد' : family.health,
+          martyrDate: (family as any).martyrDate || '',
+          education: family.education || '—',
+          educationDetail:
+            family.educationDetail || '',
+          special: [] as string[],
+          healthNeeds: [] as string[],
+          familyHead: family.head
+        },
 
         ...family.members.map((member) => ({
           ...member,
+          special: Array.isArray(member.special) ? member.special : ([] as string[]),
+          healthNeeds: Array.isArray(member.healthNeeds) ? member.healthNeeds : ([] as string[]),
           familyHead: family.head
         }))
       ])
@@ -385,7 +412,6 @@ function createRegistry() {
       )
   );
 
-  // نتائج فلترة الأفراد.
   const filteredPeople = computed(() =>
     allPeople.value.filter((person) => {
       const personName = `
@@ -453,7 +479,6 @@ function createRegistry() {
       .join(' ')
   );
 
-  // إنشاء رقم واتساب دولي.
   function internationalWhatsapp(
     prefix: string,
     number: string
@@ -470,7 +495,6 @@ function createRegistry() {
       : '';
   }
 
-  // العائلة الحالية.
   const currentFamily = computed<Family>(() => ({
     id: familyId.value,
     head: fullName.value,
@@ -479,6 +503,7 @@ function createRegistry() {
     grandfather: form.grandfather,
     identity: form.identity,
     phone: form.phone,
+    altPhone: form.altPhone,
     alternate: form.alternate,
     birth: form.birth,
     gender: form.gender,
@@ -502,6 +527,7 @@ function createRegistry() {
     originalAddress: form.originalAddress,
     originalHousingStatus:
       form.originalHousingStatus,
+    displacementStatus: form.displacementStatus,
     displacementArea: form.displacementArea,
     residence: form.residence,
     housing: form.housing,
@@ -523,7 +549,10 @@ function createRegistry() {
   const displacedFamilies = computed(
     () =>
       allFamilies.value.filter(
-        (family) => family.displacementArea
+        (family) =>
+          family.displacementStatus === 'نازح' ||
+          (!family.displacementStatus &&
+            family.displacementArea)
       ).length
   );
 
@@ -536,7 +565,6 @@ function createRegistry() {
       ).length
   );
 
-  // إظهار رسالة قصيرة.
   function flash(message: string) {
     toast.value = message;
 
@@ -558,11 +586,13 @@ function createRegistry() {
       originalArea: '',
       originalAddress: '',
       originalHousingStatus: '',
+      displacementStatus: '',
       displacementArea: '',
       housing: '',
       residence: '',
       hasTentPhoto: '',
       need: '',
+      familyStatus: '',
       minMembers: '',
       maxMembers: ''
     });
@@ -574,6 +604,7 @@ function createRegistry() {
       identity: '',
       familyHead: '',
       gender: '',
+      martyr: '',
       health: '',
       healthNeeds: [],
       education: '',
@@ -593,13 +624,9 @@ function createRegistry() {
     });
   }
 
-  // تنظيف الأسماء.
   function normalizeName(value: string) {
     return String(value || '')
-      .replace(/[أإآ]/g, 'ا')
-      .replace(/ؤ/g, 'و')
-      .replace(/ئ/g, 'ي')
-      .replace(/ء/g, '')
+      .replace(/[أإ]/g, 'ا')
       .replace(/ة/g, 'ه')
       .replace(/[،,؛;.:/\\|_-]+/g, '')
       .replace(/\s+/g, '')
@@ -608,10 +635,7 @@ function createRegistry() {
 
   function splitLegacyHeadName(value: string) {
     const words = String(value || '')
-      .replace(/[أإآ]/g, 'ا')
-      .replace(/ؤ/g, 'و')
-      .replace(/ئ/g, 'ي')
-      .replace(/ء/g, '')
+      .replace(/[أإ]/g, 'ا')
       .replace(/ة/g, 'ه')
       .replace(/[،,؛;.:/\\|_-]+/g, ' ')
       .replace(/\s+/g, ' ')
@@ -653,7 +677,6 @@ function createRegistry() {
     };
   }
 
-  // تحويل روابط Google Drive إلى رابط صورة مباشر.
   function photoSrc(value: string) {
     const url = String(value || '').trim();
 
@@ -661,33 +684,18 @@ function createRegistry() {
       return '';
     }
 
-    // الصورة الجديدة قبل حفظها.
     if (url.startsWith('data:image/')) {
       return url;
     }
 
-    /*
-     * يجب فحص رابط googleusercontent أولًا.
-     * الرابط يكون:
-     * https://lh3.googleusercontent.com/d/FILE_ID=w1600
-     *
-     * إذا استخدمنا تعبير /d/ العام أولًا،
-     * سيتم اعتبار =w1600 جزءًا من رقم الملف،
-     * وينتج رابط خاطئ ينتهي بـ:
-     * =w1600=w1600
-     */
     const googleUserContentId = url.match(
       /googleusercontent\.com\/d\/([^/=]+)/
     )?.[1];
 
-    // روابط مثل:
-    // drive.google.com/uc?export=view&id=FILE_ID
     const queryId = url.match(
       /[?&]id=([^&]+)/
     )?.[1];
 
-    // روابط مثل:
-    // drive.google.com/file/d/FILE_ID/view
     const drivePathId = url.match(
       /\/d\/([^/=?&]+)/
     )?.[1];
@@ -697,12 +705,10 @@ function createRegistry() {
       queryId ||
       drivePathId;
 
-    // رابط ليس تابعًا إلى Google Drive.
     if (!fileId) {
       return url;
     }
 
-    // رابط الصور المصغرة أكثر ثباتًا للعرض داخل الموقع.
     return (
       'https://drive.google.com/thumbnail?id=' +
       encodeURIComponent(fileId) +
@@ -756,8 +762,8 @@ function createRegistry() {
     );
   }
 
-  // تحميل بيانات العائلة داخل النموذج.
   function loadFamilyIntoForm(family: Family) {
+    originalIdentity.value = family.identity || '';
     const name = splitLegacyHeadName(
       family.head || ''
     );
@@ -775,6 +781,7 @@ function createRegistry() {
 
       identity: family.identity || '',
       phone: family.phone || '',
+      altPhone: family.altPhone || '',
       alternate: family.alternate || '',
 
       whatsappPrefix:
@@ -808,6 +815,11 @@ function createRegistry() {
 
       originalHousingStatus:
         family.originalHousingStatus || '',
+      displacementStatus:
+        family.displacementStatus ||
+        (family.displacementArea || family.residence
+          ? 'نازح'
+          : ''),
 
       displacementArea:
         family.displacementArea || '',
@@ -909,7 +921,6 @@ function createRegistry() {
     go('family');
   }
 
-  // فتح الصورة داخل النافذة المنبثقة.
   function openPhoto(
     source: string,
     title: string
@@ -920,7 +931,6 @@ function createRegistry() {
     };
   }
 
-  // تسجيل الدخول.
   async function loginUser() {
     if (
       !/^\d{9}$/.test(loginIdentity.value) ||
@@ -935,7 +945,6 @@ function createRegistry() {
 
     loginBusy.value = true;
 
-    // محاولة تسجيل دخول المدير.
     try {
       const response = await fetch(
         '/api/admin/login',
@@ -974,10 +983,9 @@ function createRegistry() {
         return;
       }
     } catch {
-      // إذا فشل دخول المدير نحاول دخول العائلة.
+      // فشل دخول المدير
     }
 
-    // محاولة تسجيل دخول العائلة.
     try {
       const response = await fetch(
         '/api/families/login',
@@ -1017,7 +1025,7 @@ function createRegistry() {
         return;
       }
     } catch {
-      // التحقق يتم من الخادم.
+      // فشل دخول العائلة
     }
 
     flash(
@@ -1048,7 +1056,6 @@ function createRegistry() {
     go('login');
   }
 
-  // إنهاء جلسة العائلة وحذف البيانات المحفوظة في هذا المتصفح.
   function logoutFamily() {
     familyToken.value = '';
 
@@ -1093,7 +1100,7 @@ function createRegistry() {
           data.url || '';
       }
     } catch {
-      // يبقى الربط غير متصل.
+      // خطأ في جلب الحالة
     }
   }
 
@@ -1123,11 +1130,10 @@ function createRegistry() {
           Boolean(data.connected);
       }
     } catch {
-      // تبقى القائمة فارغة.
+      // خطأ في جلب العائلات
     }
   }
 
-  // استعادة جلسة المدير بعد تحديث الصفحة.
   async function restoreSavedAdminSession() {
     if (!adminToken.value) return;
 
@@ -1170,8 +1176,6 @@ function createRegistry() {
     }
   }
 
-  // استعادة جلسة العائلة بعد تحديث الصفحة.
-  // رمز الجلسة يبقى داخل التبويب، بينما تُستعاد بيانات العائلة المحفوظة لعرض الصفحة مباشرة.
   function restoreSavedFamilySession() {
     if (!familyToken.value || adminToken.value) return;
 
@@ -1274,7 +1278,160 @@ function createRegistry() {
     }
   }
 
-  function nextStep() {
+  const DUP_MESSAGE = 'رقم الهوية مستخدم من قبل، يرجى إزالته من المكان الآخر لتتمكن من المتابعة';
+
+  const identityCache = new Map<string, boolean>();
+  const identityPending = new Map<string, Promise<boolean>>();
+
+  function serverIdentityExists(identity: string): Promise<boolean> {
+    const key = `${identity}|${originalIdentity.value}`;
+
+    if (identityCache.has(key)) {
+      return Promise.resolve(identityCache.get(key) as boolean);
+    }
+
+    const running = identityPending.get(key);
+    if (running) return running;
+
+    const request = fetch('/api/families/check-identity', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ identity, exclude: originalIdentity.value })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const exists = Boolean(data?.exists);
+        identityCache.set(key, exists);
+        return exists;
+      })
+      .catch(() => false)
+      .finally(() => identityPending.delete(key));
+
+    identityPending.set(key, request);
+    return request;
+  }
+
+  async function identityTaken(identity: string, isMember: boolean) {
+    if (!/^\d{9}$/.test(identity)) return false;
+
+    if (!isMember && identity === form.identity) {
+      // رب الأسرة يطابق نفسه
+    } else if (isMember && identity === form.identity) {
+      return true;
+    }
+
+    const others = draftMembers.value
+      .filter((m) => m.id !== editingMember.value)
+      .map((m) => m.identity);
+
+    if (others.includes(identity)) return true;
+
+    return serverIdentityExists(identity);
+  }
+
+  async function checkHeadIdentity() {
+    identityError.value = (await identityTaken(form.identity, false)) ? DUP_MESSAGE : '';
+  }
+
+  async function checkMemberIdentity() {
+    memberIdentityError.value = (await identityTaken(memberDraft.identity, true)) ? DUP_MESSAGE : '';
+  }
+
+  async function nextStep() {
+    if (step.value === 1) {
+      await checkHeadIdentity();
+      if (identityError.value) { flash(identityError.value); return; }
+
+      if (!form.first.trim() || !form.father.trim() || !form.grandfather.trim()) {
+        flash('يجب تسجيل الاسم رباعي (الاسم الأول، اسم الأب، واسم الجد)');
+        return;
+      }
+
+      if (!form.identity || form.identity.length !== 9) {
+        flash('أدخل رقم هوية صحيح من 9 أرقام');
+        return;
+      }
+
+      if (!form.phone || form.phone.length !== 10) {
+        flash('أدخل رقم جوال أساسي صحيح من 10 أرقام');
+        return;
+      }
+
+      if (!form.alternate) {
+        flash('أدخل رقم واتساب صحيح');
+        return;
+      }
+
+      if (!form.birth) {
+        flash('أدخل تاريخ الميلاد');
+        return;
+      }
+
+      if (!form.gender) {
+        flash('يرجى اختيار الجنس');
+        return;
+      }
+
+      if (!form.marital) {
+        flash('يرجى اختيار الحالة الاجتماعية');
+        return;
+      }
+
+      if (!form.headStatus) {
+        flash('يرجى اختيار حالة رب الأسرة');
+        return;
+      }
+
+      if (educationNeedsDetail(form.education) && !form.educationDetail.trim()) {
+        flash('يرجى اختيار التخصص');
+        return;
+      }
+    }
+
+    if (step.value === 2) {
+      if (!form.originalArea) {
+        flash('اختر المنطقة الأصلية');
+        return;
+      }
+
+      if (!form.originalAddress.trim()) {
+        flash('أدخل العنوان الأصلي بالتفصيل');
+        return;
+      }
+
+      if (!form.originalHousingStatus) {
+        flash('اختر حالة السكن الأصلي');
+        return;
+      }
+
+      if (!form.displacementStatus) {
+        flash('اختر حالة النزوح');
+        return;
+      }
+
+      if (form.displacementStatus === 'نازح') {
+        if (!form.displacementArea) {
+          flash('اختر منطقة النزوح');
+          return;
+        }
+
+        if (!form.residence.trim()) {
+          flash('أدخل مكان النزوح بالتفصيل');
+          return;
+        }
+
+        if (!form.housing) {
+          flash('اختر نوع مكان النزوح');
+          return;
+        }
+
+        if (form.housing === 'خيمة' && !form.tentPhoto) {
+          flash('يرجى اختيار صورة واضحة للخيمة من الخارج');
+          return;
+        }
+      }
+    }
+
     if (step.value < 4) {
       step.value++;
 
@@ -1305,8 +1462,7 @@ function createRegistry() {
     );
   }
 
-  // إضافة فرد أو حفظ تعديله.
-  function saveMember() {
+  async function saveMember() {
     memberDraft.first = normalizeName(
       memberDraft.first
     );
@@ -1332,6 +1488,9 @@ function createRegistry() {
 
       return;
     }
+
+    await checkMemberIdentity();
+    if (memberIdentityError.value) { flash(memberIdentityError.value); return; }
 
     if (
       educationNeedsDetail(
@@ -1386,6 +1545,7 @@ function createRegistry() {
     });
 
     editingMember.value = null;
+    memberIdentityError.value = '';
 
     flash('تم حفظ بيانات الفرد');
   }
@@ -1410,62 +1570,97 @@ function createRegistry() {
     editingMember.value = member.id;
   }
 
-  function captureTentPhoto(
+  function compressImage(
+    file: File,
+    maxSize = 1600,
+    quality = 0.75
+  ): Promise<string> {
+    return new Promise((resolve) => {
+      const readOriginal = () => {
+        const reader = new FileReader();
+
+        reader.onload = () =>
+          resolve(String(reader.result || ''));
+
+        reader.readAsDataURL(file);
+      };
+
+      const objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+
+      image.onload = () => {
+        const scale = Math.min(
+          1,
+          maxSize / Math.max(image.width, image.height)
+        );
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+
+        const context = canvas.getContext('2d');
+        URL.revokeObjectURL(objectUrl);
+
+        if (!context) {
+          readOriginal();
+          return;
+        }
+
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        readOriginal();
+      };
+
+      image.src = objectUrl;
+    });
+  }
+
+  async function captureTentPhoto(
     event: Event
   ) {
-    const file =
-      (
-        event.target as HTMLInputElement
-      ).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    form.tentPhoto = await compressImage(file);
+    input.value = '';
 
-    reader.onload = () => {
-      form.tentPhoto =
-        String(reader.result || '');
-
-      flash(
-        'تم التقاط صورة الخيمة'
-      );
-    };
-
-    reader.readAsDataURL(file);
+    flash(
+      'تمت إضافة صورة الخيمة'
+    );
   }
 
-  function captureDocumentPhoto(
+  async function captureDocumentPhoto(
     event: Event,
     target: 'idPhoto' | 'slipPhoto'
   ) {
-    const file =
-      (
-        event.target as HTMLInputElement
-      ).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
 
     if (!file) return;
 
-    const reader = new FileReader();
+    form[target] = await compressImage(file);
+    input.value = '';
 
-    reader.onload = () => {
-      form[target] =
-        String(reader.result || '');
-
-      flash(
-        target === 'idPhoto'
-          ? 'تمت إضافة صورة الهوية'
-          : 'تمت إضافة صورة السليب'
-      );
-    };
-
-    reader.readAsDataURL(file);
+    flash(
+      target === 'idPhoto'
+        ? 'تمت إضافة صورة الهوية'
+        : 'تمت إضافة صورة السليب'
+    );
   }
 
-  // حفظ العائلة.
   async function saveFamily() {
     normalizeFamilyNames();
 
-    if (form.needs.length === 0) {
+    if (form.needs.length === 0 && editingGroup.value !== 'password' && editingGroup.value !== 'housing') {
       flash(
         'اختر احتياجاً واحداً على الأقل'
       );
@@ -1488,6 +1683,16 @@ function createRegistry() {
     ) {
       flash(
         'رقم الجوال الأساسي يجب أن يتكون من 10 أرقام'
+      );
+
+      return;
+    }
+
+    if (
+      form.altPhone && !/^\d{10}$/.test(form.altPhone)
+    ) {
+      flash(
+        'رقم الجوال البديل يجب أن يتكون من 10 أرقام'
       );
 
       return;
@@ -1526,15 +1731,48 @@ function createRegistry() {
       return;
     }
 
-    if (
-      !form.idPhoto ||
-      !form.slipPhoto
-    ) {
-      flash(
-        'أضف صورة الهوية وصورة السليب'
-      );
+    if (!editingFamily.value || editingGroup.value === 'housing') {
+      if (!form.originalArea) {
+        flash('اختر المنطقة الأصلية');
+        return;
+      }
 
-      return;
+      if (!form.originalAddress.trim()) {
+        flash('أدخل العنوان الأصلي بالتفصيل');
+        return;
+      }
+
+      if (!form.originalHousingStatus) {
+        flash('اختر حالة السكن الأصلي');
+        return;
+      }
+
+      if (!form.displacementStatus) {
+        flash('اختر حالة النزوح');
+        return;
+      }
+
+      if (form.displacementStatus === 'نازح') {
+        if (!form.displacementArea) {
+          flash('اختر منطقة النزوح');
+          return;
+        }
+
+        if (!form.residence.trim()) {
+          flash('أدخل مكان النزوح بالتفصيل');
+          return;
+        }
+
+        if (!form.housing) {
+          flash('اختر نوع مكان النزوح');
+          return;
+        }
+
+        if (form.housing === 'خيمة' && !form.tentPhoto) {
+          flash('يرجى اختيار صورة واضحة للخيمة من الخارج');
+          return;
+        }
+      }
     }
 
     if (
@@ -1663,7 +1901,7 @@ function createRegistry() {
       go('family');
 
       flash(
-        'تم حفظ التعديلات في Google Sheets'
+        'تم حفظ البيانات بنجاح'
       );
     } catch (error) {
       localStorage.setItem(
@@ -1676,14 +1914,13 @@ function createRegistry() {
         error.message !==
           'تعذر حفظ البيانات'
           ? error.message
-          : 'تعذر الحفظ في Google Sheets؛ تأكد من الربط'
+          : 'تعذر حفظ البيانات؛ تأكد من الاتصال'
       );
     } finally {
       familySaving.value = false;
     }
   }
 
-  // تصدير Excel.
   function exportExcel(
     kind: 'families' | 'people'
   ) {
@@ -1699,6 +1936,9 @@ function createRegistry() {
 
               'الجوال الأساسي':
                 family.phone,
+
+              'رقم جوال بديل':
+                family.altPhone || '',
 
               'رقم واتساب الدولي':
                 family.whatsapp ||
@@ -1728,12 +1968,6 @@ function createRegistry() {
               'تفاصيل الحالة الصحية':
                 family.disease,
 
-              'صفة الإقامة':
-                family.residencyType,
-
-              'رقم كرت المؤن':
-                family.rationCard,
-
               'الحالة التعليمية':
                 family.education,
 
@@ -1748,6 +1982,10 @@ function createRegistry() {
 
               'حالة السكن الأصلي':
                 family.originalHousingStatus,
+
+              'حالة النزوح':
+                family.displacementStatus ||
+                (family.displacementArea ? 'نازح' : ''),
 
               'منطقة النزوح':
                 family.displacementArea,
@@ -1768,7 +2006,7 @@ function createRegistry() {
                 family.tentPhoto,
 
               'عدد الأفراد':
-                family.members.length +
+                family.members.filter((m) => m.health !== 'شهيد').length +
                 (
                   family.headStatus ===
                   'شهيد'
@@ -1885,7 +2123,6 @@ function createRegistry() {
     );
   }
 
-  // القيم والدوال المستخدمة في الصفحات.
   return {
     Info,
     view,
@@ -1973,11 +2210,14 @@ function createRegistry() {
     saveFamily,
     exportExcel,
     age,
-    familyOfMember
+    familyOfMember,
+    identityError,
+    memberIdentityError,
+    checkHeadIdentity,
+    checkMemberIdentity
   };
 }
 
-// جميع الصفحات تستخدم نفس الحالة المشتركة.
 export function useRegistry() {
   if (!registryState) {
     registryState = createRegistry();

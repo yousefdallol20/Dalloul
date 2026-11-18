@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dalloul-family",
+  "main": "./dist/server/index.js",
+  "compatibility_date": "2026-11-09",
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dalloul-family-db",
+      "database_id": "69aa7ffd-1024-4d6f-8649-307c4b74d5cc"
+    }
+  ],
+
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  }
+}

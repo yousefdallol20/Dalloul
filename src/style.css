@@ -91,3 +91,367 @@
   color: var(--muted);
   font-size: 13px;
 }
+
+/* مربّع الإقرار والتعهد */
+.declaration-block {
+  margin-top: 20px;
+  padding: 16px;
+  background: #fff9e6;
+  border: 1px solid #ffe599;
+  border-radius: 14px;
+}
+.declaration-check {
+  font-size: 14px;
+  color: #7a5200;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+/* زر ومعلومات المطور */
+.login-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+.dev-info-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #dce3ee;
+  background: #f4f8ff;
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  transition: 0.2s;
+}
+.dev-info-btn:hover {
+  background: var(--blue);
+  color: #fff;
+}
+.dev-info-modal {
+  width: min(440px, 100%);
+  text-align: center;
+}
+.dev-info-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: right;
+}
+.dev-avatar {
+  font-size: 28px;
+  background: #eaf3ff;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+}
+.whatsapp-dev-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  background: #25d366;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  transition: 0.2s;
+}
+.whatsapp-dev-link:hover {
+  background: #1eb956;
+  transform: translateY(-2px);
+}
+
+/* زر المعلومات في الزاوية العليا اليمين للبطاقة أو الشاشة */
+.dev-info-btn-top-right {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #dce3ee;
+  background: #f4f8ff;
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: 0.2s ease;
+  box-shadow: 0 4px 12px rgba(23, 105, 224, 0.08);
+}
+
+.dev-info-btn-top-right:hover {
+  background: var(--blue);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* تأكد أن بطاقة تسجيل الدخول تحتوي على position relative ليتموضع الزر بالنسبة لها بدقة */
+.login-card {
+  position: relative;
+}
+
+/* تصميم النافذة الجديدة (Modal) */
+.dev-info-modal-new {
+  width: min(460px, 100%);
+  border-radius: 24px;
+  padding: 30px;
+  position: relative;
+  background: #ffffff;
+  box-shadow: 0 25px 60px rgba(13, 26, 47, 0.15);
+}
+
+.dev-modal-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.dev-close-btn {
+  background: #f0f4f8;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #53627a;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dev-close-btn:hover {
+  background: #e2e8f0;
+}
+
+.dev-modal-body {
+  text-align: center;
+  padding: 0 10px 10px;
+}
+
+.dev-title-wrapper {
+  margin-bottom: 16px;
+}
+
+.dev-subtitle-line {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.dev-name-line {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+}
+
+.dev-desc {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--blue);
+  background: #f0f5ff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.dev-note {
+  font-size: 14px;
+  color: #64748a;
+  line-height: 1.7;
+  margin: 0 0 24px;
+}
+
+.whatsapp-dev-link-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  background: #128c7e;
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 8px 20px rgba(18, 140, 126, 0.25);
+  transition: 0.2s ease;
+  text-decoration: none;
+  direction: ltr;
+}
+
+.whatsapp-dev-link-new:hover {
+  background: #0e7569;
+  transform: translateY(-2px);
+}
+
+/* زر المعلومات في الزاوية العليا اليمين تماماً في أقصى الأعلى */
+.dev-info-btn-top-right {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #dce3ee;
+  background: #ffffff;
+  color: var(--blue);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: 0.2s ease;
+  box-shadow: 0 4px 15px rgba(23, 105, 224, 0.1);
+}
+
+.dev-info-btn-top-right:hover {
+  background: var(--blue);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* التأكد من أن الحاوية الحاضنة تحمل position relative لتثبيت الزر في زاويتها بدقة */
+.login-panel {
+  position: relative;
+} 
+
+.photo-actions{display:flex;flex-wrap:wrap;gap:8px}
+
+.field-error{display:block;margin-block-start:6px;color:#ce4545;font-size:12px;font-weight:700}
+
+.field-error {
+  display: block;
+  margin-block-start: 6px;
+  color: #ce4545;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* تنسيق صف الحقول المزدوجة للأفراد (العمر والجنس) */
+.member-inline-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+} 
+
+/* ملاحظة صغيرة فوق زر إضافة الفرد */
+.form-note {
+  margin: 4px 0 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #fff9e9;
+  color: #786130;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* الحقول المغلقة (مثل بيانات النزوح عند اختيار "غير نازح") */
+.fields-grid select:disabled,
+.fields-grid input:disabled {
+  background: #f1f4f8;
+  color: #9aa5b5;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* ===== صفحة العائلة على الموبايل ===== */
+@media (max-width: 560px) {
+  .family-page {
+    width: calc(100% - 20px);
+    padding: 20px 0 50px;
+  }
+
+  .family-page .welcome h1 {
+    font-size: 22px;
+  }
+
+  .family-page .summary-cards article {
+    padding: 12px;
+  }
+
+  .family-page .detail-card {
+    padding: 16px 14px;
+    border-radius: 16px;
+  }
+
+  /* العنوان في سطر كامل، والأزرار تحته */
+  .family-page .card-title {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .family-page .card-title > div:first-child {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .family-page .card-title h2 {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  .family-page .card-title > .card-title-actions {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .family-page .section-edit-button {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+
+  .family-page .status,
+  .family-page .count-pill {
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+
+  /* البيانات القصيرة (عمر، جنس، أرقام) اثنتان بجانب بعض */
+  .family-page .detail-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14px;
+  }
+
+  .family-page .detail-grid .info-item {
+    min-width: 0;
+    padding: 9px 0;
+  }
+
+  .family-page .detail-grid .info-item.wide {
+    grid-column: 1 / -1;
+  }
+
+  .family-page .info-item small {
+    margin-bottom: 3px;
+    font-size: 11px;
+  }
+
+  .family-page .info-item b {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  .family-page .drawer-members article {
+    padding: 12px;
+  }
+
+  .family-page .member-card-title b {
+    font-size: 14px;
+  }
+
+  .family-page .member-card-title small {
+    font-size: 12px;
+  }
+}
